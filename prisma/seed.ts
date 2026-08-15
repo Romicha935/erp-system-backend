@@ -1,10 +1,11 @@
+import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from 'generated/prisma/client';
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL!,
 });
 
 const prisma = new PrismaClient({
@@ -12,18 +13,14 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('Admin@123', 10);
+  const password = await bcrypt.hash('Admin@123', 10);
 
-  const admin = await prisma.user.upsert({
-    where: {
-      email: 'admin@erp.com',
-    },
-    update: {},
-    create: {
+  const admin = await prisma.user.create({
+    data: {
       firstName: 'ERP',
       lastName: 'Admin',
       email: 'admin@erp.com',
-      password: hashedPassword,
+      password,
       role: 'ADMIN',
     },
   });
@@ -39,4 +36,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-  
