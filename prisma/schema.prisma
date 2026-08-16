@@ -12,20 +12,49 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
 enum UserRole {
   ADMIN
   HR
   STAFF
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
-  id           String   @id @default(uuid())
-  firstName    String
-  lastName     String
-  email        String   @unique
-  password     String
-  role         UserRole @default(STAFF)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(STAFF)
+
+  staff     Staff?   @relation("UserStaff")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Staff {
+  id            String   @id @default(uuid())
+  staffId       String   @unique
+
+  firstName     String
+  lastName      String
+  phone         String
+  email         String   @unique
+  officialEmail String?  @unique
+
+  gender        Gender
+  profileImage  String?
+
+  role          UserRole
+  designation   String
+
+  userId        String?  @unique
+  user          User?    @relation("UserStaff", fields: [userId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

@@ -12,11 +12,5 @@ export class AuthController {
         return this.authService.login(dto);
     }
 
-    @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getMe() {
-    return {
-      message: 'You are authenticated',
-    };
-  }
+
 }
