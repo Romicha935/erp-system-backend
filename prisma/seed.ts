@@ -2,26 +2,25 @@ import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from 'generated/prisma/client';
+import { PrismaClient, UserRole } from '../generated/prisma/client';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
 });
 
 const prisma = new PrismaClient({
+  
   adapter,
 });
 
 async function main() {
-  const password = await bcrypt.hash('Admin@123', 10);
+  const hashedPassword = await bcrypt.hash('Admin@123', 10);
 
   const admin = await prisma.user.create({
     data: {
-      firstName: 'ERP',
-      lastName: 'Admin',
       email: 'admin@erp.com',
-      password,
-      role: 'ADMIN',
+      password: hashedPassword,
+      role: UserRole.ADMIN,
     },
   });
 
