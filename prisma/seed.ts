@@ -14,13 +14,21 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('Admin@123', 10);
+  const password = await bcrypt.hash('Admin@123', 10);
 
   const admin = await prisma.user.create({
     data: {
+<<<<<<< HEAD
       email: 'admin@erp.com',
       password: hashedPassword,
       role: UserRole.ADMIN,
+=======
+      firstName: 'ERP',
+      lastName: 'Admin',
+      email: 'admin@erp.com',
+      password,
+      role: 'ADMIN',
+>>>>>>> f957c2c8d30e71b5722d295cb7d54fd9edd6589d
     },
   });
 
