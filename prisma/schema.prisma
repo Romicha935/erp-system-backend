@@ -58,3 +58,78 @@ model Staff {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttachmentType {
+  INVOICE
+  RECEIPT
+}
+
+model ProcurementRequest {
+  id             String          @id @default(uuid())
+  sn             String          @unique
+  item           String
+  quantity       Int
+  unitPrice      Decimal         @db.Decimal(12, 2)
+  totalPrice     Decimal         @db.Decimal(12, 2)
+  status         RequestStatus   @default(PENDING)
+
+  hasAttachment Boolean         @default(false)
+  attachmentType AttachmentType?
+  attachmentUrl  String?
+
+  requestedById String
+  requestedBy   User @relation("RequestedProcurements", fields: [requestedById], references: [id])
+
+  sentToId String
+  sentTo   User @relation("AssignedProcurements", fields: [sentToId], references: [id])
+
+  paymentVoucher PaymentVoucher?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentVoucher {
+  id            String             @id @default(uuid())
+
+  procurementId String             @unique
+  procurement   ProcurementRequest @relation(fields: [procurementId], references: [id], onDelete: Cascade)
+
+  vatPercentage Decimal @db.Decimal(5, 2) @default(7.50)
+  vatAmount     Decimal @db.Decimal(12, 2)
+  grossAmount   Decimal @db.Decimal(12, 2)
+
+  beneficiary BeneficiaryDetail?
+
+  initiatedById String
+  initiatedBy   User @relation("InitiatedVouchers", fields: [initiatedById], references: [id])
+
+  verifiedById String?
+  verifiedBy   User? @relation("VerifiedVouchers", fields: [verifiedById], references: [id])
+
+  approvedById String?
+  approvedBy   User? @relation("ApprovedVouchers", fields: [approvedById], references: [id])
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BeneficiaryDetail {
+  id               String         @id @default(uuid())
+
+  paymentVoucherId String         @unique
+  paymentVoucher   PaymentVoucher @relation(fields: [paymentVoucherId], references: [id], onDelete: Cascade)
+
+  accountName   String
+  accountNumber String
+  bankName      String
+}
