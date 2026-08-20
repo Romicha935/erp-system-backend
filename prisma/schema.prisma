@@ -103,7 +103,7 @@ model PaymentVoucher {
   procurementId String             @unique
   procurement   ProcurementRequest @relation(fields: [procurementId], references: [id], onDelete: Cascade)
 
-  vatPercentage Decimal @db.Decimal(5, 2) @default(7.50)
+  vatPercentage Decimal @default(7.50) @db.Decimal(5, 2)
   vatAmount     Decimal @db.Decimal(12, 2)
   grossAmount   Decimal @db.Decimal(12, 2)
 
