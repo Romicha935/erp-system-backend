@@ -15,7 +15,7 @@ enum AttachmentType {
   RECEIPT = 'RECEIPT',
 }
 
-class VoucherDto {
+export class CreateVoucherDto {
   @IsString()
   accountName: string;
 
@@ -62,7 +62,7 @@ export class CreateProcurementDto {
   attachmentUrl?: string;
 
   @ValidateNested()
-  @Type(() => VoucherDto)
+  @Type(() => CreateVoucherDto)
   @IsOptional()
-  voucher?: VoucherDto;
+  voucher?: CreateVoucherDto;
 }

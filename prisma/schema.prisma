@@ -12,6 +12,7 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 enum UserRole {
   ADMIN
   HR
@@ -25,40 +26,42 @@ enum Gender {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      UserRole @default(STAFF)
+  id       String   @id @default(uuid())
+  email    String   @unique
+  password String
+  role     UserRole @default(STAFF)
 
-  staff     Staff?   @relation("UserStaff")
+  staff Staff? @relation("UserStaff")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  requestedProcurements ProcurementRequest[] @relation("RequestedProcurements")
+  assignedProcurements  ProcurementRequest[] @relation("AssignedProcurements")
+  initiatedVouchers     PaymentVoucher[]     @relation("InitiatedVouchers")
+  verifiedVouchers      PaymentVoucher[]     @relation("VerifiedVouchers")
+  approvedVouchers      PaymentVoucher[]     @relation("ApprovedVouchers")
 }
 
 model Staff {
   id            String   @id @default(uuid())
   staffId       String   @unique
-
   firstName     String
   lastName      String
   phone         String
   email         String   @unique
   officialEmail String?  @unique
-
   gender        Gender
   profileImage  String?
-
   role          UserRole
   designation   String
 
-  userId        String?  @unique
-  user          User?    @relation("UserStaff", fields: [userId], references: [id])
+  userId String? @unique
+  user   User?   @relation("UserStaff", fields: [userId], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 enum RequestStatus {
   PENDING
@@ -79,16 +82,15 @@ model ProcurementRequest {
   unitPrice      Decimal         @db.Decimal(12, 2)
   totalPrice     Decimal         @db.Decimal(12, 2)
   status         RequestStatus   @default(PENDING)
-
-  hasAttachment Boolean         @default(false)
+  hasAttachment  Boolean         @default(false)
   attachmentType AttachmentType?
   attachmentUrl  String?
 
   requestedById String
-  requestedBy   User @relation("RequestedProcurements", fields: [requestedById], references: [id])
+  requestedBy   User   @relation("RequestedProcurements", fields: [requestedById], references: [id])
 
   sentToId String
-  sentTo   User @relation("AssignedProcurements", fields: [sentToId], references: [id])
+  sentTo   User   @relation("AssignedProcurements", fields: [sentToId], references: [id])
 
   paymentVoucher PaymentVoucher?
 
@@ -98,7 +100,6 @@ model ProcurementRequest {
 
 model PaymentVoucher {
   id            String             @id @default(uuid())
-
   procurementId String             @unique
   procurement   ProcurementRequest @relation(fields: [procurementId], references: [id], onDelete: Cascade)
 
@@ -109,13 +110,13 @@ model PaymentVoucher {
   beneficiary BeneficiaryDetail?
 
   initiatedById String
-  initiatedBy   User @relation("InitiatedVouchers", fields: [initiatedById], references: [id])
+  initiatedBy   User   @relation("InitiatedVouchers", fields: [initiatedById], references: [id])
 
   verifiedById String?
-  verifiedBy   User? @relation("VerifiedVouchers", fields: [verifiedById], references: [id])
+  verifiedBy   User?   @relation("VerifiedVouchers", fields: [verifiedById], references: [id])
 
   approvedById String?
-  approvedBy   User? @relation("ApprovedVouchers", fields: [approvedById], references: [id])
+  approvedBy   User?   @relation("ApprovedVouchers", fields: [approvedById], references: [id])
 
   remarks String?
 
@@ -125,7 +126,6 @@ model PaymentVoucher {
 
 model BeneficiaryDetail {
   id               String         @id @default(uuid())
-
   paymentVoucherId String         @unique
   paymentVoucher   PaymentVoucher @relation(fields: [paymentVoucherId], references: [id], onDelete: Cascade)
 

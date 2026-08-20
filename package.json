@@ -24,10 +24,6 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
-<<<<<<< HEAD
-    "@nestjs/mapped-types": "^2.1.1",
-=======
->>>>>>> f957c2c8d30e71b5722d295cb7d54fd9edd6589d
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/adapter-pg": "^7.9.1",
