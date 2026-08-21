@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 
@@ -8,12 +12,57 @@ export class ProcurementService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async create(
-    dto: CreateProcurementDto,
-    currentUserId: string,
-  ) {
-    const totalPrice =
-      Number(dto.quantity) * Number(dto.unitPrice);
+  // Generate S/N
+  private async generateSN(): Promise<string> {
+    const lastProcurement =
+      await this.prisma.procurementRequest.findFirst({
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          sn: true,
+        },
+      });
+
+    if (!lastProcurement) {
+      return '01';
+    }
+
+    const lastNumber = parseInt(
+      lastProcurement.sn,
+      10,
+    );
+
+    return String(lastNumber + 1).padStart(2, '0');
+  }
+
+  // CREATE
+  async create(dto: CreateProcurementDto) {
+    const requestedBy =
+      await this.prisma.staff.findUnique({
+        where: {
+          id: dto.requestedById,
+        },
+      });
+
+    if (!requestedBy) {
+      throw new NotFoundException(
+        'Requesting staff not found',
+      );
+    }
+
+    const sentTo =
+      await this.prisma.staff.findUnique({
+        where: {
+          id: dto.sentToId,
+        },
+      });
+
+    if (!sentTo) {
+      throw new NotFoundException(
+        'Selected staff not found',
+      );
+    }
 
     const sn = await this.generateSN();
 
@@ -21,47 +70,87 @@ export class ProcurementService {
       await this.prisma.procurementRequest.create({
         data: {
           sn,
-
           item: dto.item,
-
           quantity: dto.quantity,
-
-
           unitPrice: dto.unitPrice,
+          totalPrice: dto.totalPrice,
 
-          totalPrice,
+          requestedBy: {
+            connect: {
+              id: dto.requestedById,
+            },
+          },
 
-          requestedById: currentUserId,
+          sentTo: {
+            connect: {
+              id: dto.sentToId,
+            },
+          },
 
-          sentToId: dto.sentToId,
-
-          hasAttachment: dto.hasAttachment,
+          hasAttachment:
+            dto.hasAttachment ?? false,
 
           attachmentType:
-            dto.attachmentType as any,
+            dto.attachmentType,
 
           attachmentUrl:
             dto.attachmentUrl,
         },
       });
 
-    return procurement;
+    return {
+      message:
+        'Procurement request created successfully',
+      data: procurement,
+    };
   }
 
-  private async generateSN() {
-    const last =
-      await this.prisma.procurementRequest.findFirst({
+  // GET ALL
+  async findAll() {
+    const procurements =
+      await this.prisma.procurementRequest.findMany({
         orderBy: {
           createdAt: 'desc',
         },
+
+        include: {
+          requestedBy: true,
+          sentTo: true,
+          paymentVoucher: true,
+        },
       });
 
-    if (!last) {
-      return '01';
+    return {
+      data: procurements,
+      meta: {
+        total: procurements.length,
+      },
+    };
+  }
+
+  // GET SINGLE
+  async findOne(id: string) {
+    const procurement =
+      await this.prisma.procurementRequest.findUnique({
+        where: {
+          id,
+        },
+
+        include: {
+          requestedBy: true,
+          sentTo: true,
+          paymentVoucher: true,
+        },
+      });
+
+    if (!procurement) {
+      throw new NotFoundException(
+        'Procurement request not found',
+      );
     }
 
-    const next = Number(last.sn) + 1;
-
-    return String(next).padStart(2, '0');
+    return {
+      data: procurement,
+    };
   }
 }

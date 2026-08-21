@@ -9,7 +9,6 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({
-  
   adapter,
 });
 
@@ -19,9 +18,8 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       email: 'admin@erp.com',
-      password: password,
+      password,
       role: UserRole.ADMIN,
-
     },
   });
 

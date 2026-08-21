@@ -31,16 +31,15 @@ model User {
   password String
   role     UserRole @default(STAFF)
 
-  staff Staff? @relation("UserStaff")
+  staffId String? @unique
+  staff   Staff?  @relation("UserStaff", fields: [staffId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  requestedProcurements ProcurementRequest[] @relation("RequestedProcurements")
-  assignedProcurements  ProcurementRequest[] @relation("AssignedProcurements")
-  initiatedVouchers     PaymentVoucher[]     @relation("InitiatedVouchers")
-  verifiedVouchers      PaymentVoucher[]     @relation("VerifiedVouchers")
-  approvedVouchers      PaymentVoucher[]     @relation("ApprovedVouchers")
+  initiatedVouchers PaymentVoucher[] @relation("InitiatedVouchers")
+  verifiedVouchers  PaymentVoucher[] @relation("VerifiedVouchers")
+  approvedVouchers  PaymentVoucher[] @relation("ApprovedVouchers")
 }
 
 model Staff {
@@ -48,16 +47,18 @@ model Staff {
   staffId       String   @unique
   firstName     String
   lastName      String
-  phone         String
-  email         String   @unique
-  officialEmail String?  @unique
-  gender        Gender
+  phone         String?
+  email         String?
+  officialEmail String?
+  gender        Gender?
   profileImage  String?
-  role          UserRole
-  designation   String
+  role          UserRole @default(STAFF)
+  designation   String?
+  user          User?    @relation("UserStaff")
 
-  userId String? @unique
-  user   User?   @relation("UserStaff", fields: [userId], references: [id])
+  requestedProcurements ProcurementRequest[] @relation("RequestedProcurements")
+
+  assignedProcurements ProcurementRequest[] @relation("AssignedProcurements")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -87,10 +88,10 @@ model ProcurementRequest {
   attachmentUrl  String?
 
   requestedById String
-  requestedBy   User   @relation("RequestedProcurements", fields: [requestedById], references: [id])
+  requestedBy   Staff  @relation("RequestedProcurements", fields: [requestedById], references: [id])
 
   sentToId String
-  sentTo   User   @relation("AssignedProcurements", fields: [sentToId], references: [id])
+  sentTo   Staff  @relation("AssignedProcurements", fields: [sentToId], references: [id])
 
   paymentVoucher PaymentVoucher?
 
