@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -34,5 +35,10 @@ export class ProcurementController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.procurementService.findOne(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.procurementService.remove(id);
   }
 }

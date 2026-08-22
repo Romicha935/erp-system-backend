@@ -153,4 +153,19 @@ export class ProcurementService {
       data: procurement,
     };
   }
+
+  // REMOVE
+  async remove(id: string) {
+    const procurement =
+      await this.prisma.procurementRequest.delete({
+        where: {
+          id,
+        },
+      });
+
+    return {
+      message:
+        'Procurement request deleted successfully',
+    };
+  }
 }
