@@ -4,7 +4,9 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -36,6 +38,17 @@ export class ProcurementController {
   findOne(@Param('id') id: string) {
     return this.procurementService.findOne(id);
   }
+
+  @Patch(':id/approve')
+approve(
+  @Param('id') id: string,
+  @Req() req: any,
+) {
+  return this.procurementService.approve(
+    id,
+    req.user.id,
+  );
+}
 
   @Delete(':id')
   remove(@Param('id') id: string) {

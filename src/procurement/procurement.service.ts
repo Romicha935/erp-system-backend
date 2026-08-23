@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -153,6 +154,42 @@ export class ProcurementService {
       data: procurement,
     };
   }
+
+  async approve(id: string, approvedById: string) {
+  const procurement =
+    await this.prisma.procurementRequest.findUnique({
+      where: {
+        id,
+      },
+    });
+
+  if (!procurement) {
+    throw new NotFoundException(
+      'Procurement request not found',
+    );
+  }
+
+  if (procurement.status === 'APPROVED') {
+    throw new BadRequestException(
+      'Procurement request is already approved',
+    );
+  }
+
+  const updated =
+    await this.prisma.procurementRequest.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'APPROVED',
+      },
+    });
+
+  return {
+    message: 'Procurement request approved successfully',
+    data: updated,
+  };
+}
 
   // REMOVE
   async remove(id: string) {

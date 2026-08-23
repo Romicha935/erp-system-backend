@@ -104,6 +104,102 @@ export class PaymentVoucherService {
                 data: voucher,
             };
         }
+
+         async findAll() {
+    return this.prisma.paymentVoucher.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+
+      include: {
+        procurement: {
+          include: {
+            requestedBy: true,
+            sentTo: true,
+          },
+        },
+
+        initiatedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        verifiedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        approvedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        beneficiary: true,
+      },
+    });
+  }
+
+  // GET SINGLE
+  async findOne(id: string) {
+    const voucher =
+      await this.prisma.paymentVoucher.findUnique({
+        where: {
+          id,
+        },
+
+        include: {
+          procurement: {
+            include: {
+              requestedBy: true,
+              sentTo: true,
+            },
+          },
+
+          initiatedBy: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+            },
+          },
+
+          verifiedBy: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+            },
+          },
+
+          approvedBy: {
+            select: {
+              id: true,
+              email: true,
+              role: true,
+            },
+          },
+
+          beneficiary: true,
+        },
+      });
+
+    if (!voucher) {
+      throw new NotFoundException(
+        'Payment voucher not found',
+      );
+    }
+
+    return voucher;
+  }
             }
         
         
