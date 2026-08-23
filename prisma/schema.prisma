@@ -99,11 +99,20 @@ model ProcurementRequest {
   updatedAt DateTime @updatedAt
 }
 
+enum VoucherStatus {
+  PENDING
+  VERIFIED
+  APPROVED
+  PAID
+  REJECTED
+}          
+
 model PaymentVoucher {
   id            String             @id @default(uuid())
   procurementId String             @unique
   procurement   ProcurementRequest @relation(fields: [procurementId], references: [id], onDelete: Cascade)
-
+  status        VoucherStatus      @default(PENDING)
+  
   vatPercentage Decimal @default(7.50) @db.Decimal(5, 2)
   vatAmount     Decimal @db.Decimal(12, 2)
   grossAmount   Decimal @db.Decimal(12, 2)

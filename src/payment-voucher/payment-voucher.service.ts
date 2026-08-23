@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { create } from 'domain';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePaymentVoucherDto } from './dto/create-payment-voucher.dto';
@@ -200,6 +200,44 @@ export class PaymentVoucherService {
 
     return voucher;
   }
+
+  async verify(id: string, verifiedById: string) {
+  const voucher = await this.prisma.paymentVoucher.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!voucher) {
+    throw new NotFoundException('Payment voucher not found');
+  }
+
+  if (voucher.status !== 'PENDING') {
+    throw new BadRequestException(
+      `Payment voucher cannot be verified because current status is ${voucher.status}`,
+    );
+  }
+
+  const verifiedVoucher =
+    await this.prisma.paymentVoucher.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'VERIFIED',
+        verifiedBy: {
+          connect: {
+            id: verifiedById,
+          },
+        },
+      },
+    });
+
+  return {
+    message: 'Payment voucher verified successfully',
+    data: verifiedVoucher,
+  };
+}
             }
         
         
