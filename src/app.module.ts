@@ -8,6 +8,7 @@ import { StaffModule } from './staff/staff.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { PaymentVoucherModule } from './payment-voucher/payment-voucher.module';
+import { PayrollModule } from './payroll/payroll.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { PaymentVoucherModule } from './payment-voucher/payment-voucher.module';
     AuthModule,
     StaffModule,
     ProcurementModule,
-    PaymentVoucherModule, 
+    PaymentVoucherModule,
+    PayrollModule, 
   ],
   controllers: [AppController],
   providers: [AppService],
