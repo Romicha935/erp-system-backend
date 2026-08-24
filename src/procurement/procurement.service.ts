@@ -205,4 +205,37 @@ export class ProcurementService {
         'Procurement request deleted successfully',
     };
   }
+
+  async reject(id: string) {
+  const procurement = await this.prisma.procurementRequest.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!procurement) {
+    throw new NotFoundException('Procurement request not found');
+  }
+
+  if (procurement.status !== 'PENDING') {
+    throw new BadRequestException(
+      `Procurement request cannot be rejected because current status is ${procurement.status}`,
+    );
+  }
+
+  const rejectedProcurement =
+    await this.prisma.procurementRequest.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'REJECTED',
+      },
+    });
+
+  return {
+    message: 'Procurement request rejected successfully',
+    data: rejectedProcurement,
+  };
+}
 }

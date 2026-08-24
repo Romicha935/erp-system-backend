@@ -37,4 +37,14 @@ verify(
     req.user.id,
   );
 }
+
+@Patch(':id/pay')
+pay(@Param('id') id: string) {
+  return this.paymentVoucherService.pay(id);
+}
+
+@Patch(':id/reject')
+reject(@Param('id') id: string) {
+  return this.paymentVoucherService.reject(id);
+}
 }

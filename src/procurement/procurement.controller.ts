@@ -50,6 +50,11 @@ approve(
   );
 }
 
+@Patch(':id/reject')
+reject(@Param('id') id: string) {
+  return this.procurementService.reject(id);
+}
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.procurementService.remove(id);

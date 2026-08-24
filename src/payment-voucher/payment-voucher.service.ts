@@ -238,6 +238,74 @@ export class PaymentVoucherService {
     data: verifiedVoucher,
   };
 }
+
+async pay(id: string) {
+  const voucher = await this.prisma.paymentVoucher.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!voucher) {
+    throw new NotFoundException('Payment voucher not found');
+  }
+
+  if (voucher.status !== 'APPROVED') {
+    throw new BadRequestException(
+      `Payment voucher cannot be paid because current status is ${voucher.status}`,
+    );
+  }
+
+  const paidVoucher = await this.prisma.paymentVoucher.update({
+    where: {
+      id,
+    },
+    data: {
+      status: 'PAID',
+    },
+  });
+
+  return {
+    message: 'Payment completed successfully',
+    data: paidVoucher,
+  };
+}
+
+async reject(id: string) {
+  const voucher = await this.prisma.paymentVoucher.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!voucher) {
+    throw new NotFoundException('Payment voucher not found');
+  }
+
+  if (
+    voucher.status !== 'PENDING' &&
+    voucher.status !== 'VERIFIED'
+  ) {
+    throw new BadRequestException(
+      `Payment voucher cannot be rejected because current status is ${voucher.status}`,
+    );
+  }
+
+  const rejectedVoucher =
+    await this.prisma.paymentVoucher.update({
+      where: {
+        id,
+      },
+      data: {
+        status: 'REJECTED',
+      },
+    });
+
+  return {
+    message: 'Payment voucher rejected successfully',
+    data: rejectedVoucher,
+  };
+}
             }
         
         
