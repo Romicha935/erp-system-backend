@@ -3,6 +3,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { PaymentVoucherService } from './payment-voucher.service';
 import { CreatePaymentVoucherDto } from './dto/create-payment-voucher.dto';
 import { PaymentVoucherQueryDto } from './dto/payment-voucher-query.dto';
+import { UpdatePaymentVoucherDto } from './dto/update-payment-voucher.dto';
 
 @Controller('payment-voucher')
 @UseGuards(JwtAuthGuard)
@@ -27,6 +28,14 @@ findAll(@Query() query: PaymentVoucherQueryDto) {
   findOne(@Param('id') id: string) {
     return this.paymentVoucherService.findOne(id);
   }
+
+  @Patch(':id')
+update(
+  @Param('id') id: string,
+  @Body() dto: UpdatePaymentVoucherDto,
+) {
+  return this.paymentVoucherService.update(id, dto);
+}
 
   @Patch(':id/verify')
 verify(

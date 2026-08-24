@@ -3,6 +3,7 @@ import { create } from 'domain';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePaymentVoucherDto } from './dto/create-payment-voucher.dto';
 import { PaymentVoucherQueryDto } from './dto/payment-voucher-query.dto';
+import { UpdatePaymentVoucherDto } from './dto/update-payment-voucher.dto';
 
 @Injectable()
 export class PaymentVoucherService {
@@ -276,6 +277,126 @@ async findAll(query: PaymentVoucherQueryDto) {
 
     return voucher;
   }
+
+  async update(
+  id: string,
+  dto: UpdatePaymentVoucherDto,
+) {
+  const voucher = await this.prisma.paymentVoucher.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      beneficiary: true,
+      procurement: true,
+    },
+  });
+
+  if (!voucher) {
+    throw new NotFoundException(
+      'Payment voucher not found',
+    );
+  }
+
+  if (voucher.status === 'PAID') {
+    throw new BadRequestException(
+      'Paid payment voucher cannot be edited',
+    );
+  }
+
+  const vatPercentage =
+    dto.vatPercentage !== undefined
+      ? dto.vatPercentage
+      : Number(voucher.vatPercentage);
+
+  if (vatPercentage < 0 || vatPercentage > 100) {
+    throw new BadRequestException(
+      'VAT percentage must be between 0 and 100',
+    );
+  }
+
+  const totalPrice = Number(voucher.procurement.totalPrice);
+
+  const vatAmount =
+    totalPrice * (vatPercentage / 100);
+
+  const grossAmount =
+    totalPrice + vatAmount;
+
+  const updatedVoucher =
+    await this.prisma.paymentVoucher.update({
+      where: {
+        id,
+      },
+
+      data: {
+        vatPercentage,
+        vatAmount,
+        grossAmount,
+
+        remarks:
+          dto.remarks !== undefined
+            ? dto.remarks
+            : voucher.remarks,
+
+        beneficiary: {
+          update: {
+            ...(dto.accountName !== undefined && {
+              accountName: dto.accountName,
+            }),
+
+            ...(dto.accountNumber !== undefined && {
+              accountNumber: dto.accountNumber,
+            }),
+
+            ...(dto.bankName !== undefined && {
+              bankName: dto.bankName,
+            }),
+          },
+        },
+      },
+
+      include: {
+        procurement: {
+          include: {
+            requestedBy: true,
+            sentTo: true,
+          },
+        },
+
+        initiatedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        verifiedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        approvedBy: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+
+        beneficiary: true,
+      },
+    });
+
+  return {
+    message: 'Payment voucher updated successfully',
+    data: updatedVoucher,
+  };
+}
 
   async verify(id: string, verifiedById: string) {
   const voucher = await this.prisma.paymentVoucher.findUnique({
