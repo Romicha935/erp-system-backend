@@ -6,6 +6,8 @@ import {
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
+import { ProcurementQueryDto } from './dto/procurement-query.dto';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class ProcurementService {
@@ -107,27 +109,135 @@ export class ProcurementService {
   }
 
   // GET ALL
-  async findAll() {
-    const procurements =
-      await this.prisma.procurementRequest.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
+ async findAll(query: ProcurementQueryDto) {
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 100);
 
-        include: {
-          requestedBy: true,
-          sentTo: true,
-          paymentVoucher: true,
-        },
-      });
+  const skip = (page - 1) * limit;
 
-    return {
-      data: procurements,
-      meta: {
-        total: procurements.length,
-      },
-    };
+  const where: Prisma.ProcurementRequestWhereInput = {};
+
+  // Status filter
+  if (query.status) {
+    where.status = query.status;
   }
+
+  // Search
+  if (query.search) {
+    where.OR = [
+      {
+        item: {
+          contains: query.search,
+          mode: 'insensitive',
+        },
+      },
+      {
+        sn: {
+          contains: query.search,
+          mode: 'insensitive',
+        },
+      },
+      {
+        requestedBy: {
+          OR: [
+            {
+              firstName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              staffId: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      },
+      {
+        sentTo: {
+          OR: [
+            {
+              firstName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              staffId: {
+                contains: query.search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      },
+    ];
+  }
+
+  const [data, total] = await Promise.all([
+    this.prisma.procurementRequest.findMany({
+      where,
+      skip,
+      take: limit,
+
+      orderBy: {
+        createdAt: 'desc',
+      },
+
+      include: {
+        requestedBy: {
+          select: {
+            id: true,
+            staffId: true,
+            firstName: true,
+            lastName: true,
+            officialEmail: true,
+            role: true,
+          },
+        },
+
+        sentTo: {
+          select: {
+            id: true,
+            staffId: true,
+            firstName: true,
+            lastName: true,
+            officialEmail: true,
+            role: true,
+          },
+        },
+      },
+    }),
+
+    this.prisma.procurementRequest.count({
+      where,
+    }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
 
   // GET SINGLE
   async findOne(id: string) {

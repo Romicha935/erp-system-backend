@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Query, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { PaymentVoucherService } from './payment-voucher.service';
 import { CreatePaymentVoucherDto } from './dto/create-payment-voucher.dto';
+import { PaymentVoucherQueryDto } from './dto/payment-voucher-query.dto';
 
 @Controller('payment-voucher')
 @UseGuards(JwtAuthGuard)
@@ -17,10 +18,10 @@ create(
 }
 
 
-  @Get()
-  findAll() {
-    return this.paymentVoucherService.findAll();
-  }
+@Get()
+findAll(@Query() query: PaymentVoucherQueryDto) {
+  return this.paymentVoucherService.findAll(query);
+}
 
   @Get(':id')
   findOne(@Param('id') id: string) {

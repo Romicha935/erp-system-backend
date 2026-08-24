@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { create } from 'domain';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePaymentVoucherDto } from './dto/create-payment-voucher.dto';
+import { PaymentVoucherQueryDto } from './dto/payment-voucher-query.dto';
 
 @Injectable()
 export class PaymentVoucherService {
@@ -105,8 +106,68 @@ export class PaymentVoucherService {
             };
         }
 
-         async findAll() {
-    return this.prisma.paymentVoucher.findMany({
+async findAll(query: PaymentVoucherQueryDto) {
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 100);
+
+  const skip = (page - 1) * limit;
+
+  const where: any = {};
+
+  // Status filter
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  // Search
+  if (query.search) {
+    where.OR = [
+      {
+        procurement: {
+          item: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+      },
+      {
+        procurement: {
+          requestedBy: {
+            firstName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        },
+      },
+      {
+        procurement: {
+          requestedBy: {
+            lastName: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
+        },
+      },
+      {
+        beneficiary: {
+          accountName: {
+            contains: query.search,
+            mode: 'insensitive',
+          },
+        },
+      },
+    ];
+  }
+
+  const [vouchers, total] = await Promise.all([
+    this.prisma.paymentVoucher.findMany({
+      where,
+
+      skip,
+      take: limit,
+
       orderBy: {
         createdAt: 'desc',
       },
@@ -145,8 +206,23 @@ export class PaymentVoucherService {
 
         beneficiary: true,
       },
-    });
-  }
+    }),
+
+    this.prisma.paymentVoucher.count({
+      where,
+    }),
+  ]);
+
+  return {
+    data: vouchers,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
 
   // GET SINGLE
   async findOne(id: string) {

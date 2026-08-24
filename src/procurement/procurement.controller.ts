@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Query,
   Patch,
   Post,
   Req,
@@ -13,6 +14,8 @@ import {
 import { ProcurementService } from './procurement.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { ProcurementQueryDto } from './dto/procurement-query.dto';
+
 
 @Controller('procurement')
 @UseGuards(JwtAuthGuard)
@@ -28,10 +31,10 @@ export class ProcurementController {
   }
 
   // GET ALL
-  @Get()
-  findAll() {
-    return this.procurementService.findAll();
-  }
+@Get()
+findAll(@Query() query: ProcurementQueryDto) {
+  return this.procurementService.findAll(query);
+}
 
   // GET SINGLE
   @Get(':id')
