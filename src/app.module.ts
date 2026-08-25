@@ -9,6 +9,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { PaymentVoucherModule } from './payment-voucher/payment-voucher.module';
 import { PayrollModule } from './payroll/payroll.module';
+import { SalaryDefinitionModule } from './salary-definition/salary-definition.module';
+import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
 
 @Module({
   imports: [
@@ -20,7 +22,11 @@ import { PayrollModule } from './payroll/payroll.module';
     StaffModule,
     ProcurementModule,
     PaymentVoucherModule,
-    PayrollModule, 
+    PayrollModule,
+    SalaryDefinitionModule,
+    SalaryDefinitionModule,
+    TaxDefinitionModule, 
+    
   ],
   controllers: [AppController],
   providers: [AppService],

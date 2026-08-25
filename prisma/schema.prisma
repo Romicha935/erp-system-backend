@@ -55,10 +55,43 @@ model Staff {
   role          UserRole @default(STAFF)
   designation   String?
   user          User?    @relation("UserStaff")
-
+salaryDefinition SalaryDefinition?
   requestedProcurements ProcurementRequest[] @relation("RequestedProcurements")
 
   assignedProcurements ProcurementRequest[] @relation("AssignedProcurements")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SalaryDefinition {
+  id        String @id @default(uuid())
+
+  staffId   String @unique
+  staff     Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  basicSalary              Decimal @db.Decimal(12, 2)
+  housingAllowance         Decimal @default(0) @db.Decimal(12, 2)
+  transportAllowance       Decimal @default(0) @db.Decimal(12, 2)
+  utilityAllowance         Decimal @default(0) @db.Decimal(12, 2)
+  productivityAllowance    Decimal @default(0) @db.Decimal(12, 2)
+  communicationAllowance   Decimal @default(0) @db.Decimal(12, 2)
+  inconvenienceAllowance   Decimal @default(0) @db.Decimal(12, 2)
+tax     Decimal @default(0) @db.Decimal(12, 2)
+pension Decimal @default(0) @db.Decimal(12, 2)
+  deductions               Decimal @default(0) @db.Decimal(12, 2)
+
+  grossSalary              Decimal @db.Decimal(12, 2)
+  netSalary                Decimal @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TaxDefinition {
+  id        String   @id @default(uuid())
+  taxType   String
+  percentage Decimal  @db.Decimal(5, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
