@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "SalaryDefinition" ADD COLUMN     "pension" DECIMAL(12,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "tax" DECIMAL(12,2) NOT NULL DEFAULT 0;

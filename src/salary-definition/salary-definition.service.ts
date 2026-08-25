@@ -6,6 +6,7 @@ import {
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSalaryDefinitionDto } from './dto/create-salary-definition.dto';
+import { UpdateSalaryDefinitionDto } from './dto/update-salary-definition.dto';
 
 @Injectable()
 export class SalaryDefinitionService {
@@ -188,6 +189,93 @@ async findAll(
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
     },
+  };
+}
+
+async update(id: string, dto: UpdateSalaryDefinitionDto) {
+  const salary = await this.prisma.salaryDefinition.findUnique({
+    where: { id },
+  });
+
+  if (!salary) {
+    throw new NotFoundException('Salary definition not found');
+  }
+
+  const basicSalary = dto.basicSalary ?? Number(salary.basicSalary);
+  const housingAllowance =
+    dto.housingAllowance ?? Number(salary.housingAllowance);
+  const transportAllowance =
+    dto.transportAllowance ?? Number(salary.transportAllowance);
+  const utilityAllowance =
+    dto.utilityAllowance ?? Number(salary.utilityAllowance);
+  const productivityAllowance =
+    dto.productivityAllowance ?? Number(salary.productivityAllowance);
+  const communicationAllowance =
+    dto.communicationAllowance ?? Number(salary.communicationAllowance);
+  const inconvenienceAllowance =
+    dto.inconvenienceAllowance ?? Number(salary.inconvenienceAllowance);
+
+  const tax = dto.tax ?? Number(salary.tax);
+  const pension = dto.pension ?? Number(salary.pension);
+
+  const grossSalary =
+    basicSalary +
+    housingAllowance +
+    transportAllowance +
+    utilityAllowance +
+    productivityAllowance +
+    communicationAllowance +
+    inconvenienceAllowance;
+
+  const totalDeduction = tax + pension;
+
+  const netSalary = grossSalary - totalDeduction;
+
+  const updatedSalary = await this.prisma.salaryDefinition.update({
+    where: { id },
+
+    data: {
+      ...(dto.title !== undefined && { title: dto.title }),
+      ...(dto.level !== undefined && { level: dto.level }),
+
+      basicSalary,
+      housingAllowance,
+      transportAllowance,
+      utilityAllowance,
+      productivityAllowance,
+      communicationAllowance,
+      inconvenienceAllowance,
+
+      tax,
+      pension,
+
+      grossSalary,
+    //   totalDeduction,
+      netSalary,
+    },
+  });
+
+  return {
+    message: 'Salary definition updated successfully',
+    data: updatedSalary,
+  };
+}
+
+async remove(id: string) {
+  const salary = await this.prisma.salaryDefinition.findUnique({
+    where: { id },
+  });
+
+  if (!salary) {
+    throw new NotFoundException('Salary definition not found');
+  }
+
+  await this.prisma.salaryDefinition.delete({
+    where: { id },
+  });
+
+  return {
+    message: 'Salary definition deleted successfully',
   };
 }
 }
