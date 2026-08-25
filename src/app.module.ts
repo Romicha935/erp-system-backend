@@ -10,6 +10,7 @@ import { ProcurementModule } from './procurement/procurement.module';
 import { PaymentVoucherModule } from './payment-voucher/payment-voucher.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { SalaryDefinitionModule } from './salary-definition/salary-definition.module';
+import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
 
 @Module({
   imports: [
@@ -23,7 +24,9 @@ import { SalaryDefinitionModule } from './salary-definition/salary-definition.mo
     PaymentVoucherModule,
     PayrollModule,
     SalaryDefinitionModule,
-    SalaryDefinitionModule, 
+    SalaryDefinitionModule,
+    TaxDefinitionModule, 
+    
   ],
   controllers: [AppController],
   providers: [AppService],

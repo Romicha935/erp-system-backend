@@ -88,6 +88,15 @@ pension Decimal @default(0) @db.Decimal(12, 2)
   updatedAt DateTime @updatedAt
 }
 
+model TaxDefinition {
+  id        String   @id @default(uuid())
+  taxType   String
+  percentage Decimal  @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum RequestStatus {
   PENDING
   APPROVED
