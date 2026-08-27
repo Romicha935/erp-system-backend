@@ -11,6 +11,7 @@ import { PaymentVoucherModule } from './payment-voucher/payment-voucher.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { SalaryDefinitionModule } from './salary-definition/salary-definition.module';
 import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
+import { PayslipModule } from './payslip/payslip.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
     PayrollModule,
     SalaryDefinitionModule,
     SalaryDefinitionModule,
-    TaxDefinitionModule, 
+    TaxDefinitionModule,
+    PayslipModule, 
     
   ],
   controllers: [AppController],
