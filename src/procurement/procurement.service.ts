@@ -7,7 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 import { ProcurementQueryDto } from './dto/procurement-query.dto';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '@prisma/client';
+
 
 @Injectable()
 export class ProcurementService {
