@@ -4,8 +4,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserRole } from 'generated/prisma/client';
+
 import { ROLES_KEY } from 'src/auth/decorator/roles.decorator';
+import { UserRole } from 'src/common/enums';
 
 
 

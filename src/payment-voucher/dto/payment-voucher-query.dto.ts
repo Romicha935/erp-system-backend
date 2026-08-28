@@ -1,6 +1,7 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { RequestStatus } from 'generated/prisma/';
+import { RequestStatus } from 'src/common/enums';
+
 
 
 export class PaymentVoucherQueryDto {

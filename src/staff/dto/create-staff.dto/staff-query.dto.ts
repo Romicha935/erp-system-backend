@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { UserRole } from 'generated/prisma';
+import { UserRole } from 'src/common/enums';
+
 
 
 

@@ -4,7 +4,9 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { AttachmentType } from 'generated/prisma';
+import { AttachmentType } from 'src/common/enums';
+
+
 
 
 

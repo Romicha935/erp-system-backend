@@ -6,7 +6,11 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { Gender, UserRole } from 'generated/prisma';
+import { Gender, UserRole } from 'src/common/enums';
+
+
+
+
 
 
 

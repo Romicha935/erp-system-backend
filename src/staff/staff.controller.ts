@@ -24,7 +24,8 @@ import { Roles } from 'src/auth/decorator/roles.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto/create-staff.dto';
 import { StaffQueryDto } from './dto/create-staff.dto/staff-query.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
-import { UserRole } from 'generated/prisma';
+import { UserRole } from 'src/common/enums';
+
 
 @Controller('staff')
 @UseGuards(JwtAuthGuard, RolesGuard)
