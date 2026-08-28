@@ -4,8 +4,9 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { AttachmentType } from 'generated/prisma';
 
-import { AttachmentType } from 'generated/prisma/enums';
+
 
 export class CreateProcurementDto {
   @IsString()

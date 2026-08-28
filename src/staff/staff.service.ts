@@ -19,9 +19,6 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 export class StaffService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ==========================================
-  // CREATE STAFF
-  // ==========================================
 
   async createStaff(dto: CreateStaffDto) {
     const existingStaff = await this.prisma.staff.findFirst({
