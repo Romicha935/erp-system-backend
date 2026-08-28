@@ -10,10 +10,11 @@ import { PrismaService } from '../prisma/prisma.service';
 
 
 
-import { Prisma } from '../../generated/prisma/client';
+
 import { CreateStaffDto } from './dto/create-staff.dto/create-staff.dto';
 import { StaffQueryDto } from './dto/create-staff.dto/staff-query.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class StaffService {

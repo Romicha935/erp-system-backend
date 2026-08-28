@@ -17,13 +17,14 @@ import { StaffService } from './staff.service';
 
 
 
-import { UserRole } from '../../generated/prisma/client';
+
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { CreateStaffDto } from './dto/create-staff.dto/create-staff.dto';
 import { StaffQueryDto } from './dto/create-staff.dto/staff-query.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { UserRole } from 'generated/prisma';
 
 @Controller('staff')
 @UseGuards(JwtAuthGuard, RolesGuard)
