@@ -19,6 +19,8 @@ model User {
   initiatedVouchers  PaymentVoucher[] @relation("InitiatedVouchers")
   verifiedVouchers   PaymentVoucher[] @relation("VerifiedVouchers")
   staff              Staff?           @relation("UserStaff", fields: [staffId], references: [id])
+
+  sentMemos Memo[] @relation("SentMemos")
 }
 
 model Staff {
@@ -41,6 +43,8 @@ model Staff {
   assignedProcurements  ProcurementRequest[] @relation("AssignedProcurements")
   salaryDefinition      SalaryDefinition?
   user                  User?                @relation("UserStaff")
+
+  receivedMemos Memo[] @relation("ReceivedMemos")
 }
 
 model SalaryDefinition {
@@ -179,6 +183,31 @@ model BeneficiaryDetail {
   accountNumber    String
   bankName         String
   paymentVoucher   PaymentVoucher @relation(fields: [paymentVoucherId], references: [id], onDelete: Cascade)
+}
+
+model Memo {
+  id             String   @id @default(uuid())
+  title          String
+  message        String
+  senderId       String
+  sender         User     @relation("SentMemos", fields: [senderId], references: [id])
+  receiverId     String
+  receiver       Staff    @relation("ReceivedMemos", fields: [receiverId], references: [id])
+  hasAttachment  Boolean  @default(false)
+  attachmentType String?
+  attachmentUrl  String?
+  action         String?
+  remarks        String?
+  status         String?  @default("PENDING")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum MemoStatus {
+  SENT
+  READ
+  APPROVED
+  REJECTED
 }
 
 enum UserRole {

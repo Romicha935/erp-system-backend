@@ -13,6 +13,7 @@ import { SalaryDefinitionModule } from './salary-definition/salary-definition.mo
 import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
 import { PayslipModule } from './payslip/payslip.module';
 import { PrismaModule } from './prisma/prisma.module'; 
+import { MemoModule } from './memo/memo.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SalaryDefinitionModule,
     TaxDefinitionModule,
     PayslipModule,
+    MemoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
