@@ -17,6 +17,7 @@ import { MemoModule } from './memo/memo.module';
 import { CircularModule } from './circular/circular.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { LogisticsModule } from './logistics/logistics.module';
+import { BudgetModule } from './budget/budget.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LogisticsModule } from './logistics/logistics.module';
     CircularModule,
     MaintenanceModule,
     LogisticsModule,
+    BudgetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
