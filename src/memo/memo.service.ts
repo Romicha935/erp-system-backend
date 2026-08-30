@@ -203,38 +203,46 @@ console.log('======================');
     return memo;
   }
 
-  async action(currentUserId: string, id: string, dto: MemoActionDto) {
-    const memo = await this.prisma.memo.findUnique({
-      where: {
-        id,
-      },
-    });
+ async action(currentUserId: string, id: string, dto: MemoActionDto) {
+  const memo = await this.prisma.memo.findUnique({
+    where: {
+      id,
+    },
+  });
 
-    if (!memo) {
-      throw new NotFoundException('Memo not found');
-    }
-
-    if (memo.receiverId !== currentUserId) {
-      throw new BadRequestException(
-        'Only the receiver can take action on this memo',
-      );
-    }
-
-    return this.prisma.memo.update({
-      where: {
-        id,
-      },
-      data: {
-        status: dto.action === MemoAction.APPROVE ? 'APPROVED' : 'REJECTED',
-        action: dto.action,
-        remarks: dto.remarks,
-      },
-      include: {
-        sender: true,
-        receiver: true,
-      },
-    });
+  if (!memo) {
+    throw new NotFoundException('Memo not found');
   }
+
+  const currentUser = await this.prisma.user.findUnique({
+    where: { id: currentUserId },
+    select: { staffId: true, role: true },
+  });
+
+  const isReceiver = currentUser?.staffId === memo.receiverId;
+  const isAdmin = currentUser?.role === 'ADMIN';
+
+  if (!isReceiver && !isAdmin) {
+    throw new BadRequestException(
+      'Only the receiver can take action on this memo',
+    );
+  }
+
+  return this.prisma.memo.update({
+    where: {
+      id,
+    },
+    data: {
+      status: dto.action === MemoAction.APPROVE ? 'APPROVED' : 'REJECTED',
+      action: dto.action,
+      remarks: dto.remarks,
+    },
+    include: {
+      sender: true,
+      receiver: true,
+    },
+  });
+}
 
   async remove(currentUserId: string, id: string) {
     const memo = await this.prisma.memo.findUnique({
