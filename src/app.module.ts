@@ -14,6 +14,7 @@ import { TaxDefinitionModule } from './tax-definition/tax-definition.module';
 import { PayslipModule } from './payslip/payslip.module';
 import { PrismaModule } from './prisma/prisma.module'; 
 import { MemoModule } from './memo/memo.module';
+import { CircularModule } from './circular/circular.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MemoModule } from './memo/memo.module';
     TaxDefinitionModule,
     PayslipModule,
     MemoModule,
+    CircularModule,
   ],
   controllers: [AppController],
   providers: [AppService],

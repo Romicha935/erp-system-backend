@@ -21,6 +21,7 @@ model User {
   staff              Staff?           @relation("UserStaff", fields: [staffId], references: [id])
 
   sentMemos Memo[] @relation("SentMemos")
+   sentCirculars Circular[] @relation("SentCirculars")
 }
 
 model Staff {
@@ -245,4 +246,15 @@ enum VoucherStatus {
   APPROVED
   PAID
   REJECTED
+}
+
+model Circular {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  sentToGroup String
+  senderId  String
+  sender    User     @relation("SentCirculars", fields: [senderId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
