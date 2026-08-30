@@ -23,6 +23,7 @@ model User {
   sentMemos Memo[] @relation("SentMemos")
    sentCirculars Circular[] @relation("SentCirculars")
    createdMaintenances Maintenance[] @relation("CreatedMaintenances")
+    createdBudgets Budget[] @relation("CreatedBudgets")
 }
 
 model Staff {
@@ -314,4 +315,24 @@ model LogisticsBeneficiary {
   accountNumber      String
   bankName           String
   logisticsRequest   LogisticsRequest @relation(fields: [logisticsRequestId], references: [id], onDelete: Cascade)
+}
+
+model Budget {
+  id                String       @id @default(uuid())
+  budgetNo          String       @unique
+  description       String
+  budgetedAmount    Decimal      @db.Decimal(14, 2)
+  actualAmount      Decimal?     @db.Decimal(14, 2)
+  receivingOffice   String?
+  status            BudgetStatus @default(PENDING)
+  createdById       String
+  createdBy         User         @relation("CreatedBudgets", fields: [createdById], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+enum BudgetStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
