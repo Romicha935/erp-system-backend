@@ -16,6 +16,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { MemoModule } from './memo/memo.module';
 import { CircularModule } from './circular/circular.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
+import { LogisticsModule } from './logistics/logistics.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     MemoModule,
     CircularModule,
     MaintenanceModule,
+    LogisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -47,6 +47,9 @@ model Staff {
   user                  User?                @relation("UserStaff")
 
   receivedMemos Memo[] @relation("ReceivedMemos")
+
+    requestedLogistics LogisticsRequest[] @relation("RequestedLogistics")
+  assignedLogistics  LogisticsRequest[] @relation("AssignedLogistics")
 }
 
 model SalaryDefinition {
@@ -284,4 +287,31 @@ enum MaintenanceStatus {
   PENDING
   COMPLETED
   OVERDUE
+}
+
+model LogisticsRequest {
+  id            String                @id @default(uuid())
+  title         String
+  purpose       String
+  amount        Decimal               @db.Decimal(12, 2)
+  dateFrom      DateTime
+  dateTo        DateTime
+  status        RequestStatus         @default(PENDING)
+  requestedById String
+  sentToId      String
+  requestedBy   Staff                 @relation("RequestedLogistics", fields: [requestedById], references: [id])
+  sentTo        Staff                 @relation("AssignedLogistics", fields: [sentToId], references: [id])
+  beneficiary   LogisticsBeneficiary?
+  remarks       String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+}
+
+model LogisticsBeneficiary {
+  id                 String           @id @default(uuid())
+  logisticsRequestId String           @unique
+  accountName        String
+  accountNumber      String
+  bankName           String
+  logisticsRequest   LogisticsRequest @relation(fields: [logisticsRequestId], references: [id], onDelete: Cascade)
 }
