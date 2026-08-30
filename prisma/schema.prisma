@@ -22,6 +22,7 @@ model User {
 
   sentMemos Memo[] @relation("SentMemos")
    sentCirculars Circular[] @relation("SentCirculars")
+   createdMaintenances Maintenance[] @relation("CreatedMaintenances")
 }
 
 model Staff {
@@ -257,4 +258,30 @@ model Circular {
   sender    User     @relation("SentCirculars", fields: [senderId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Maintenance {
+  id               String            @id @default(uuid())
+  itemName         String
+  quantity         Int
+  scheduledDate    DateTime
+  maintenanceType  MaintenanceType
+  recurringOption  String?
+  status           MaintenanceStatus @default(PENDING)
+  attachmentUrl    String?
+  createdById      String
+  createdBy        User              @relation("CreatedMaintenances", fields: [createdById], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+enum MaintenanceType {
+  RECURRING
+  ONE_TIME
+}
+
+enum MaintenanceStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
 }

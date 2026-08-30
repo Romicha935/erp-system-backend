@@ -15,6 +15,7 @@ import { PayslipModule } from './payslip/payslip.module';
 import { PrismaModule } from './prisma/prisma.module'; 
 import { MemoModule } from './memo/memo.module';
 import { CircularModule } from './circular/circular.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CircularModule } from './circular/circular.module';
     PayslipModule,
     MemoModule,
     CircularModule,
+    MaintenanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
