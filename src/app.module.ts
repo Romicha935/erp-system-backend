@@ -18,6 +18,7 @@ import { CircularModule } from './circular/circular.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { LogisticsModule } from './logistics/logistics.module';
 import { BudgetModule } from './budget/budget.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { BudgetModule } from './budget/budget.module';
     MaintenanceModule,
     LogisticsModule,
     BudgetModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -24,6 +24,7 @@ model User {
    sentCirculars Circular[] @relation("SentCirculars")
    createdMaintenances Maintenance[] @relation("CreatedMaintenances")
     createdBudgets Budget[] @relation("CreatedBudgets")
+      createdInventoryItems InventoryItem[] @relation("CreatedInventoryItems")
 }
 
 model Staff {
@@ -335,4 +336,33 @@ enum BudgetStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model InventoryItem {
+  id              String        @id @default(uuid())
+  type            InventoryType
+  productName     String
+  productId       String
+  category        String
+  qtyPurchased    Int
+  unitPrice       Decimal       @db.Decimal(14, 2)
+  supplier        String
+  imageUrl        String?
+
+  
+  quantityInStock Int?
+
+ 
+  totalUnits      Int?
+  functioningUnits Int?
+
+  createdById     String
+  createdBy       User          @relation("CreatedInventoryItems", fields: [createdById], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum InventoryType {
+  STOCK
+  INVENTORY
 }
