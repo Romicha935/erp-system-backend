@@ -20,6 +20,7 @@ import { LogisticsModule } from './logistics/logistics.module';
 import { BudgetModule } from './budget/budget.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { NotificationModule } from './notification/notification.module';
+import { TrainingModule } from './training/training.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationModule } from './notification/notification.module';
     BudgetModule,
     InventoryModule,
     NotificationModule,
+    TrainingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

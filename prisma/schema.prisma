@@ -26,6 +26,7 @@ model User {
     createdBudgets Budget[] @relation("CreatedBudgets")
       createdInventoryItems InventoryItem[] @relation("CreatedInventoryItems")
         notifications Notification[] @relation("UserNotifications")
+         createdTrainings TrainingRequest[] @relation("CreatedTrainings")
 }
 
 model Staff {
@@ -53,6 +54,7 @@ model Staff {
 
     requestedLogistics LogisticsRequest[] @relation("RequestedLogistics")
   assignedLogistics  LogisticsRequest[] @relation("AssignedLogistics")
+    trainingParticipations TrainingParticipant[]
 }
 
 model SalaryDefinition {
@@ -375,4 +377,36 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model TrainingRequest {
+  id            String              @id @default(uuid())
+  description   String
+  type          String
+  durationValue Int
+  durationUnit  String
+  startDate     DateTime
+  mode          String
+  status        TrainingStatus      @default(TODO)
+  createdById   String
+  createdBy     User                @relation("CreatedTrainings", fields: [createdById], references: [id])
+  participants  TrainingParticipant[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model TrainingParticipant {
+  id                String          @id @default(uuid())
+  trainingRequestId String
+  staffId           String
+  trainingRequest   TrainingRequest @relation(fields: [trainingRequestId], references: [id], onDelete: Cascade)
+  staff             Staff           @relation(fields: [staffId], references: [id])
+
+  @@unique([trainingRequestId, staffId])
+}
+
+enum TrainingStatus {
+  TODO
+  INPROGRESS
+  COMPLETED
 }

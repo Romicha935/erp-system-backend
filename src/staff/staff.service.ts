@@ -41,6 +41,7 @@ export class StaffService {
         'Staff ID or email already exists',
       );
     }
+    
 
     return this.prisma.staff.create({
       data: {
