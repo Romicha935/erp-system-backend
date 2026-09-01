@@ -4,6 +4,10 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use((req, res, next) => {
+  console.log('Content-Type:', req.headers['content-type']);
+  next();
+});
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -17,6 +21,10 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      transformOptions: {
+      enableImplicitConversion: true,  
+    },   
+     
     }),
   );
 
