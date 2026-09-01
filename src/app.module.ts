@@ -19,6 +19,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { LogisticsModule } from './logistics/logistics.module';
 import { BudgetModule } from './budget/budget.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { InventoryModule } from './inventory/inventory.module';
     LogisticsModule,
     BudgetModule,
     InventoryModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

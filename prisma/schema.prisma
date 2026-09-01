@@ -25,6 +25,7 @@ model User {
    createdMaintenances Maintenance[] @relation("CreatedMaintenances")
     createdBudgets Budget[] @relation("CreatedBudgets")
       createdInventoryItems InventoryItem[] @relation("CreatedInventoryItems")
+        notifications Notification[] @relation("UserNotifications")
 }
 
 model Staff {
@@ -365,4 +366,13 @@ model InventoryItem {
 enum InventoryType {
   STOCK
   INVENTORY
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
