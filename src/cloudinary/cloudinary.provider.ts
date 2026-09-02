@@ -7,9 +7,9 @@ export const CloudinaryProvider = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService) => {
     return cloudinary.config({
-      cloud_name: configService.get('s6tmvcmz'),
-      api_key: configService.get('955672548122385'),
-      api_secret: configService.get('eJHC7vL3LoJsYMyM9mXJo_Ct7DU'),
+      cloud_name: configService.get('CLOUDINARY_CLOUD_NAME'),
+      api_key: configService.get('CLOUDINARY_API_KEY'),
+      api_secret: configService.get('CLOUDINARY_API_SECRET'),
     });
   },
 };

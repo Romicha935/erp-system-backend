@@ -11,7 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-
+import { BadRequestException } from '@nestjs/common';
 
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -43,21 +43,26 @@ export class SettingController {
     return this.settingService.changePassword(req.user.id, dto);
   }
 
-  @Post('me/photo')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      limits: { fileSize: 2 * 1024 * 1024 },
-      fileFilter: (req, file, cb) => {
-        const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
-        if (!allowed.includes(file.mimetype)) {
-          return cb(new Error('Only JPG, JPEG and PNG images are allowed'), false);
-        }
-        cb(null, true);
-      },
-    }),
-  )
-  async uploadPhoto(@Req() req, @UploadedFile() image: Express.Multer.File) {
-    const uploaded = await this.cloudinaryService.uploadImage(image);
-    return this.settingService.updateProfilePicture(req.user.id, uploaded.secure_url);
-  }
+@Post('me/photo')
+@UseInterceptors(
+  FileInterceptor('image', {
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      console.log('Received file:', file?.originalname, file?.mimetype);
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowed.includes(file.mimetype)) {
+        return cb(new BadRequestException('Only JPG, JPEG and PNG images are allowed'), false);
+      }
+      cb(null, true);
+    },
+  }),
+)
+async uploadPhoto(@Req() req, @UploadedFile() image: Express.Multer.File) {
+  console.log('req.file:', image);        // 👈 নতুন
+  console.log('req.body:', req.body);      // 👈 নতুন
+  const uploaded = await this.cloudinaryService.uploadImage(image);
+  return this.settingService.updateProfilePicture(req.user.id, uploaded.secure_url);
+}
+  
+
 }
