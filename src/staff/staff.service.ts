@@ -5,64 +5,81 @@ import {
 } from '@nestjs/common';
 
 
-
-
-
-
-
-
 import { CreateStaffDto } from './dto/create-staff.dto/create-staff.dto';
 import { StaffQueryDto } from './dto/create-staff.dto/staff-query.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 
 
 @Injectable()
 export class StaffService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+      private readonly notificationService: NotificationService,
+  ) {}
 
 
-  async createStaff(dto: CreateStaffDto) {
-    const existingStaff = await this.prisma.staff.findFirst({
-      where: {
-        OR: [
-          { staffId: dto.staffId },
-          { email: dto.email },
-          ...(dto.officialEmail
-            ? [{ officialEmail: dto.officialEmail }]
-            : []),
-        ],
-      },
-    });
+async createStaff(dto: CreateStaffDto) {
+  const existingStaff = await this.prisma.staff.findFirst({
+    where: {
+      OR: [
+        { staffId: dto.staffId },
+        { email: dto.email },
+        ...(dto.officialEmail
+          ? [{ officialEmail: dto.officialEmail }]
+          : []),
+      ],
+    },
+  });
 
-    if (existingStaff) {
-      throw new ConflictException(
-        'Staff ID or email already exists',
-      );
-    }
-    
-
-    return this.prisma.staff.create({
-      data: {
-        staffId: dto.staffId,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        email: dto.email,
-        officialEmail: dto.officialEmail,
-        gender: dto.gender,
-        profileImage: dto.profileImage,
-        role: dto.role,
-        designation: dto.designation,
-      },
-    });
+  if (existingStaff) {
+    throw new ConflictException(
+      'Staff ID or email already exists',
+    );
   }
 
-  // ==========================================
-  // GET ALL STAFF
-  // SEARCH + ROLE FILTER + PAGINATION
-  // ==========================================
+  const staff = await this.prisma.staff.create({
+    data: {
+      staffId: dto.staffId,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      email: dto.email,
+      officialEmail: dto.officialEmail,
+      gender: dto.gender,
+      profileImage: dto.profileImage,
+      role: dto.role,
+      designation: dto.designation,
+    },
+  });
+
+  // Find all admins
+  const admins = await this.prisma.user.findMany({
+    where: {
+      role: 'ADMIN',
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  // Create notification for every admin
+  await Promise.all(
+    admins.map((admin) =>
+      this.notificationService.createNotification(
+        admin.id,
+        `New staff ${staff.firstName} ${staff.lastName} has been created.`,
+      ),
+    ),
+  );
+
+  return {
+    message: 'Staff created successfully',
+    data: staff,
+  };
+}
+
 
   async getStaff(query: StaffQueryDto) {
     const {
@@ -259,9 +276,6 @@ export class StaffService {
     });
   }
 
-  // ==========================================
-  // DELETE STAFF
-  // ==========================================
 
   async deleteStaff(id: string) {
     const staff = await this.prisma.staff.findUnique({

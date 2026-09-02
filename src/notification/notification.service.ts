@@ -1,4 +1,3 @@
-// notification.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -6,16 +5,29 @@ import { NotificationQueryDto } from './dto/notification-query.dto';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
   ) {}
 
-  async create(dto: CreateNotificationDto) {
-    const notification = await this.prisma.notification.create({
+  
+  async createNotification(
+    userId: string,
+    message: string,
+  ) {
+    return this.prisma.notification.create({
       data: {
-        userId: dto.userId,
-        message: dto.message,
+        userId,
+        message,
       },
     });
+  }
+
+  // Optional: manual create
+  async create(dto: CreateNotificationDto) {
+    const notification = await this.createNotification(
+      dto.userId,
+      dto.message,
+    );
 
     return {
       message: 'Notification created successfully',
@@ -23,31 +35,44 @@ export class NotificationService {
     };
   }
 
-  async findAll(currentUserId: string, query: NotificationQueryDto) {
+  async findAll(
+    currentUserId: string,
+    query: NotificationQueryDto,
+  ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
 
-    const where: any = { userId: currentUserId };
+    const where: any = {
+      userId: currentUserId,
+    };
 
     if (query.filter === 'unread') {
       where.isRead = false;
     }
 
-    const [notifications, total, unreadCount] = await Promise.all([
-      this.prisma.notification.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
+    const [notifications, total, unreadCount] =
+      await Promise.all([
+        this.prisma.notification.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
 
-      this.prisma.notification.count({ where }),
+        this.prisma.notification.count({
+          where,
+        }),
 
-      this.prisma.notification.count({
-        where: { userId: currentUserId, isRead: false },
-      }),
-    ]);
+        this.prisma.notification.count({
+          where: {
+            userId: currentUserId,
+            isRead: false,
+          },
+        }),
+      ]);
 
     const grouped = this.groupByDate(notifications);
 
@@ -77,66 +102,127 @@ export class NotificationService {
       notifDate.setHours(0, 0, 0, 0);
 
       let groupKey: string;
+
       if (notifDate.getTime() === today.getTime()) {
         groupKey = 'Today';
-      } else if (notifDate.getTime() === yesterday.getTime()) {
+      } else if (
+        notifDate.getTime() === yesterday.getTime()
+      ) {
         groupKey = 'Yesterday';
       } else {
-        groupKey = notifDate.toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        });
+        groupKey = notifDate.toLocaleDateString(
+          'en-GB',
+          {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          },
+        );
       }
 
-      if (!groups[groupKey]) groups[groupKey] = [];
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+
       groups[groupKey].push(notif);
     }
 
-    return Object.entries(groups).map(([group, items]) => ({ group, items }));
+    return Object.entries(groups).map(
+      ([group, items]) => ({
+        group,
+        items,
+      }),
+    );
   }
 
-  async markAsRead(currentUserId: string, id: string) {
-    const notification = await this.prisma.notification.findUnique({ where: { id } });
+  async markAsRead(
+    currentUserId: string,
+    id: string,
+  ) {
+    const notification =
+      await this.prisma.notification.findUnique({
+        where: { id },
+      });
 
-    if (!notification || notification.userId !== currentUserId) {
-      throw new NotFoundException('Notification not found');
+    if (
+      !notification ||
+      notification.userId !== currentUserId
+    ) {
+      throw new NotFoundException(
+        'Notification not found',
+      );
     }
 
-    const updated = await this.prisma.notification.update({
-      where: { id },
-      data: { isRead: true },
-    });
+    const updated =
+      await this.prisma.notification.update({
+        where: { id },
+        data: {
+          isRead: true,
+        },
+      });
 
-    return { message: 'Notification marked as read', data: updated };
+    return {
+      message: 'Notification marked as read',
+      data: updated,
+    };
   }
 
-  async markAllAsRead(currentUserId: string) {
+  async markAllAsRead(
+    currentUserId: string,
+  ) {
     await this.prisma.notification.updateMany({
-      where: { userId: currentUserId, isRead: false },
-      data: { isRead: true },
+      where: {
+        userId: currentUserId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
     });
 
-    return { message: 'All notifications marked as read' };
+    return {
+      message: 'All notifications marked as read',
+    };
   }
 
-  async remove(currentUserId: string, id: string) {
-    const notification = await this.prisma.notification.findUnique({ where: { id } });
+  async remove(
+    currentUserId: string,
+    id: string,
+  ) {
+    const notification =
+      await this.prisma.notification.findUnique({
+        where: { id },
+      });
 
-    if (!notification || notification.userId !== currentUserId) {
-      throw new NotFoundException('Notification not found');
+    if (
+      !notification ||
+      notification.userId !== currentUserId
+    ) {
+      throw new NotFoundException(
+        'Notification not found',
+      );
     }
 
-    await this.prisma.notification.delete({ where: { id } });
-
-    return { message: 'Notification deleted successfully' };
-  }
-
-  async removeAll(currentUserId: string) {
-    await this.prisma.notification.deleteMany({
-      where: { userId: currentUserId },
+    await this.prisma.notification.delete({
+      where: { id },
     });
 
-    return { message: 'All notifications deleted successfully' };
+    return {
+      message: 'Notification deleted successfully',
+    };
+  }
+
+  async removeAll(
+    currentUserId: string,
+  ) {
+    await this.prisma.notification.deleteMany({
+      where: {
+        userId: currentUserId,
+      },
+    });
+
+    return {
+      message: 'All notifications deleted successfully',
+    };
   }
 }
