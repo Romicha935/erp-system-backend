@@ -21,6 +21,7 @@ import { BudgetModule } from './budget/budget.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { NotificationModule } from './notification/notification.module';
 import { TrainingModule } from './training/training.module';
+import { SettingModule } from './setting/setting.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { TrainingModule } from './training/training.module';
     InventoryModule,
     NotificationModule,
     TrainingModule,
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
