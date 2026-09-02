@@ -8,93 +8,119 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMemoDto } from './dto/create-memo.dto';
 import { MemoAction, MemoActionDto } from './dto/memo-action.dto';
 import { MemoQueryDto, MemoType } from './dto/memo-query.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class MemoService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+     private readonly notificationService: NotificationService,
+  ) {}
 
-  async create(userId: string, dto: CreateMemoDto) {
-    console.log('=== MEMO CREATE DEBUG ===');
-    console.log('userId:', userId);
-    console.log('Full DTO:', JSON.stringify(dto));
-    console.log('receiverId value:', dto.receiverId);
-    console.log('receiverId type:', typeof dto.receiverId);
-    console.log('receiverId length:', dto.receiverId?.length);
+ async create(userId: string, dto: CreateMemoDto) {
+  console.log('=== MEMO CREATE DEBUG ===');
+  console.log('userId:', userId);
+  console.log('Full DTO:', JSON.stringify(dto));
+  console.log('receiverId value:', dto.receiverId);
+  console.log('receiverId type:', typeof dto.receiverId);
+  console.log('receiverId length:', dto.receiverId?.length);
 
-    const receiver = await this.prisma.staff.findUnique({
-      where: {
-        id: dto.receiverId,
-      },
-    });
+  const receiver = await this.prisma.staff.findUnique({
+    where: {
+      id: dto.receiverId,
+    },
+  });
 
-    console.log('Receiver query result:', receiver);
-    console.log('=========================');
+  console.log('Receiver query result:', receiver);
+  console.log('=========================');
 
-    console.log('=== DATABASE DEBUG ===');
+  console.log('=== DATABASE DEBUG ===');
 
-console.log(
-  await this.prisma.$queryRaw`
-    SELECT current_database(), current_user
-  `,
-);
+  console.log(
+    await this.prisma.$queryRaw`
+      SELECT current_database(), current_user
+    `,
+  );
 
-const allStaff = await this.prisma.staff.findMany({
-  select: {
-    id: true,
-    staffId: true,
-    firstName: true,
-    lastName: true,
-  },
-});
+  const allStaff = await this.prisma.staff.findMany({
+    select: {
+      id: true,
+      staffId: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
 
-console.log('ALL STAFF FROM PRISMA:', allStaff);
+  console.log('ALL STAFF FROM PRISMA:', allStaff);
 
-console.log('======================');
+  console.log('======================');
 
-    if (!receiver) {
-      throw new NotFoundException('Receiver staff not found');
-    }
-
-    const memo = await this.prisma.memo.create({
-      data: {
-        title: dto.title,
-        message: dto.message,
-        senderId: userId,
-        receiverId: receiver.id,
-        hasAttachment: dto.hasAttachment ?? false,
-        attachmentType: dto.attachmentType ?? null,
-        attachmentUrl: dto.attachmentUrl ?? null,
-        action: dto.action ?? null,
-        remarks: dto.remarks ?? null,
-      },
-
-      include: {
-        sender: {
-          select: {
-            id: true,
-            email: true,
-            role: true,
-          },
-        },
-
-        receiver: {
-          select: {
-            id: true,
-            staffId: true,
-            firstName: true,
-            lastName: true,
-            officialEmail: true,
-            role: true,
-          },
-        },
-      },
-    });
-
-    return {
-      message: 'Memo created successfully',
-      data: memo,
-    };
+  if (!receiver) {
+    throw new NotFoundException(
+      'Receiver staff not found',
+    );
   }
+
+  const memo = await this.prisma.memo.create({
+    data: {
+      title: dto.title,
+      message: dto.message,
+      senderId: userId,
+      receiverId: receiver.id,
+      hasAttachment: dto.hasAttachment ?? false,
+      attachmentType: dto.attachmentType ?? null,
+      attachmentUrl: dto.attachmentUrl ?? null,
+      action: dto.action ?? null,
+      remarks: dto.remarks ?? null,
+    },
+
+    include: {
+      sender: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      },
+
+      receiver: {
+        select: {
+          id: true,
+          staffId: true,
+          firstName: true,
+          lastName: true,
+          officialEmail: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  // ==========================================
+  // CREATE NOTIFICATION FOR RECEIVER
+  // ==========================================
+
+  const receiverUser =
+    await this.prisma.user.findUnique({
+      where: {
+        staffId: receiver.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+  if (receiverUser) {
+    await this.notificationService.createNotification(
+      receiverUser.id,
+      `You have received a new memo: ${memo.title}`,
+    );
+  }
+
+  return {
+    message: 'Memo created successfully',
+    data: memo,
+  };
+}
 
   async findAll(currentUserId: string, query: MemoQueryDto) {
     const page = query.page ?? 1;
@@ -203,7 +229,11 @@ console.log('======================');
     return memo;
   }
 
- async action(currentUserId: string, id: string, dto: MemoActionDto) {
+async action(
+  currentUserId: string,
+  id: string,
+  dto: MemoActionDto,
+) {
   const memo = await this.prisma.memo.findUnique({
     where: {
       id,
@@ -211,16 +241,27 @@ console.log('======================');
   });
 
   if (!memo) {
-    throw new NotFoundException('Memo not found');
+    throw new NotFoundException(
+      'Memo not found',
+    );
   }
 
-  const currentUser = await this.prisma.user.findUnique({
-    where: { id: currentUserId },
-    select: { staffId: true, role: true },
-  });
+  const currentUser =
+    await this.prisma.user.findUnique({
+      where: {
+        id: currentUserId,
+      },
+      select: {
+        staffId: true,
+        role: true,
+      },
+    });
 
-  const isReceiver = currentUser?.staffId === memo.receiverId;
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const isReceiver =
+    currentUser?.staffId === memo.receiverId;
+
+  const isAdmin =
+    currentUser?.role === 'ADMIN';
 
   if (!isReceiver && !isAdmin) {
     throw new BadRequestException(
@@ -228,20 +269,39 @@ console.log('======================');
     );
   }
 
-  return this.prisma.memo.update({
-    where: {
-      id,
-    },
-    data: {
-      status: dto.action === MemoAction.APPROVE ? 'APPROVED' : 'REJECTED',
-      action: dto.action,
-      remarks: dto.remarks,
-    },
-    include: {
-      sender: true,
-      receiver: true,
-    },
-  });
+  const updatedMemo =
+    await this.prisma.memo.update({
+      where: {
+        id,
+      },
+      data: {
+        status:
+          dto.action === MemoAction.APPROVE
+            ? 'APPROVED'
+            : 'REJECTED',
+
+        action: dto.action,
+        remarks: dto.remarks,
+      },
+      include: {
+        sender: true,
+        receiver: true,
+      },
+    });
+
+ 
+
+  const actionText =
+    dto.action === MemoAction.APPROVE
+      ? 'approved'
+      : 'rejected';
+
+  await this.notificationService.createNotification(
+    memo.senderId,
+    `Your memo "${memo.title}" has been ${actionText}.`,
+  );
+
+  return updatedMemo;
 }
 
   async remove(currentUserId: string, id: string) {
