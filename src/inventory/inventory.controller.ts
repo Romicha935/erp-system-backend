@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -34,10 +35,9 @@ export class InventoryController {
       fileSize: 2 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
-      console.log('FILE FILTER HIT:', file.originalname);
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.mimetype)) {
-        return cb(new Error('Only JPG, JPEG and PNG images are allowed'), false);
+        return cb(new BadRequestException('Only JPG, JPEG and PNG images are allowed'), false);
       }
       cb(null, true);
     },
@@ -45,12 +45,10 @@ export class InventoryController {
 )
 create(
   @Req() req,
-  @Body() body: any,
+  @Body() dto: CreateInventoryItemDto,   
   @UploadedFile() image?: Express.Multer.File,
 ) {
-  console.log('RAW BODY:', req.body);
-  console.log('FILE:', image);
-  return { received: req.body, file: image };
+  return this.inventoryService.create(req.user.id, dto, image); 
 }
 
   @Get()
