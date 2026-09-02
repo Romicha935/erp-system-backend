@@ -298,7 +298,7 @@ async action(
 
   await this.notificationService.createNotification(
     memo.senderId,
-    `Your memo "${memo.title}" has been ${actionText}.`,
+    `"${memo.title}" has been ${actionText}.`,
   );
 
   return updatedMemo;

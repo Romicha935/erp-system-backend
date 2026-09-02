@@ -1,11 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePayrollDto } from './dto/create-payroll.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class PayrollService {
-  constructor(private readonly prisma: PrismaService) {}
-    async create(dto: CreatePayrollDto) {
+  constructor(private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
+async create(dto: CreatePayrollDto) {
   if (!dto.items?.length) {
     throw new BadRequestException(
       'At least one staff is required',
@@ -13,12 +16,13 @@ export class PayrollService {
   }
 
   // Check duplicate payroll
-  const existingPayroll = await this.prisma.payrollRun.findFirst({
-    where: {
-      month: dto.month,
-      year: dto.year,
-    },
-  });
+  const existingPayroll =
+    await this.prisma.payrollRun.findFirst({
+      where: {
+        month: dto.month,
+        year: dto.year,
+      },
+    });
 
   if (existingPayroll) {
     throw new BadRequestException(
@@ -27,7 +31,9 @@ export class PayrollService {
   }
 
   // Get staff salary definitions
-  const staffIds = dto.items.map((item) => item.staffId);
+  const staffIds = dto.items.map(
+    (item) => item.staffId,
+  );
 
   const staffs = await this.prisma.staff.findMany({
     where: {
@@ -57,96 +63,130 @@ export class PayrollService {
     );
   }
 
-  return this.prisma.$transaction(async (tx) => {
-    const payrollRun = await tx.payrollRun.create({
-      data: {
-        paymentName: dto.paymentName,
-        designation: dto.designation,
-        month: dto.month,
-        year: dto.year,
-        status: 'DRAFT',
-      },
-    });
 
-const payrollItems: any[] = [];
-
-    for (const staff of staffs) {
-      const salary = staff.salaryDefinition!;
-
-      const basicSalary = Number(salary.basicSalary);
-
-      const housingAllowance = Number(
-        salary.housingAllowance,
-      );
-
-      const transportAllowance = Number(
-        salary.transportAllowance,
-      );
-
-      const utilityAllowance = Number(
-        salary.utilityAllowance,
-      );
-
-      const productivityAllowance = Number(
-        salary.productivityAllowance,
-      );
-
-      const communicationAllowance = Number(
-        salary.communicationAllowance,
-      );
-
-      const inconvenienceAllowance = Number(
-        salary.inconvenienceAllowance,
-      );
-
-      const grossSalary =
-        basicSalary +
-        housingAllowance +
-        transportAllowance +
-        utilityAllowance +
-        productivityAllowance +
-        communicationAllowance +
-        inconvenienceAllowance;
-
-      const tax = Number(salary.tax);
-      const pension = Number(salary.pension);
-
-      const deductions = tax + pension;
-
-      const netSalary = grossSalary - deductions;
-
-      const item = await tx.payrollItem.create({
+  const result = await this.prisma.$transaction(
+    async (tx) => {
+      const payrollRun = await tx.payrollRun.create({
         data: {
-          payrollRunId: payrollRun.id,
-          staffId: staff.id,
-
-          basicSalary,
-          housingAllowance,
-          transportAllowance,
-          utilityAllowance,
-          productivityAllowance,
-          communicationAllowance,
-          inconvenienceAllowance,
-
-          grossSalary,
-          tax,
-          pension,
-          deductions,
-          netSalary,
+          paymentName: dto.paymentName,
+          designation: dto.designation,
+          month: dto.month,
+          year: dto.year,
+          status: 'DRAFT',
         },
       });
 
-      payrollItems.push(item);
-    }
+      const payrollItems: any[] = [];
 
-    return {
-      message: 'Payroll created successfully',
-      data: {
-        ...payrollRun,
-        items: payrollItems,
+      for (const staff of staffs) {
+        const salary = staff.salaryDefinition!;
+
+        const basicSalary = Number(
+          salary.basicSalary,
+        );
+
+        const housingAllowance = Number(
+          salary.housingAllowance,
+        );
+
+        const transportAllowance = Number(
+          salary.transportAllowance,
+        );
+
+        const utilityAllowance = Number(
+          salary.utilityAllowance,
+        );
+
+        const productivityAllowance = Number(
+          salary.productivityAllowance,
+        );
+
+        const communicationAllowance = Number(
+          salary.communicationAllowance,
+        );
+
+        const inconvenienceAllowance = Number(
+          salary.inconvenienceAllowance,
+        );
+
+        const grossSalary =
+          basicSalary +
+          housingAllowance +
+          transportAllowance +
+          utilityAllowance +
+          productivityAllowance +
+          communicationAllowance +
+          inconvenienceAllowance;
+
+        const tax = Number(salary.tax);
+        const pension = Number(salary.pension);
+
+        const deductions = tax + pension;
+
+        const netSalary =
+          grossSalary - deductions;
+
+        const item = await tx.payrollItem.create({
+          data: {
+            payrollRunId: payrollRun.id,
+            staffId: staff.id,
+
+            basicSalary,
+            housingAllowance,
+            transportAllowance,
+            utilityAllowance,
+            productivityAllowance,
+            communicationAllowance,
+            inconvenienceAllowance,
+
+            grossSalary,
+            tax,
+            pension,
+            deductions,
+            netSalary,
+          },
+        });
+
+        payrollItems.push(item);
+      }
+
+      return {
+        message: 'Payroll created successfully',
+        data: {
+          ...payrollRun,
+          items: payrollItems,
+        },
+      };
+    },
+  );
+
+  // =========================
+  // CREATE NOTIFICATIONS
+  // =========================
+
+  const userAccounts =
+    await this.prisma.user.findMany({
+      where: {
+        staffId: {
+          in: staffIds,
+        },
       },
-    };
-  });
+      select: {
+        id: true,
+        staffId: true,
+      },
+    });
+
+  await Promise.all(
+    userAccounts.map((user) =>
+      this.notificationService.createNotification(
+        user.id,
+        `Your payroll for ${dto.month}/${dto.year} has been created successfully.`,
+      ),
+    ),
+  );
+
+  return result;
 }
 
 async findAll() {
@@ -214,9 +254,7 @@ async findAll() {
     };
   }
 
-  // =========================
-  // UPDATE PAYROLL
-  // =========================
+
   async update(id: string, dto: any) {
     const existingPayroll = await this.prisma.payrollRun.findUnique({
       where: {
